@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "mock-api": "json-server --watch server/db.json --port 4000",
-    "start": "concurrently \"npm run dev\" \"npm run mock-api\""
+    "start": "concurrently \"npm run dev\" \"npm run mock-api\"",
+    "serve": "node server/index.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -17,6 +18,8 @@
     "@xstate/react": "^6.1.0",
     "axios": "^1.18.1",
     "clsx": "^2.1.1",
+    "express": "^5.2.1",
+    "json-server": "^1.0.0-beta.15",
     "lucide-react": "^1.25.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -35,7 +38,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "concurrently": "^10.0.3",
-    "json-server": "^1.0.0-beta.15",
     "oxlint": "^1.71.0",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
