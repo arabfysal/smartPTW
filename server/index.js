@@ -22,6 +22,16 @@ let idCounter = Date.now();
 function nextId() { return (++idCounter).toString(36); }
 
 const app = express();
+
+// CORS — allow the Vercel frontend to call this API
+app.use((_req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (_req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.use(express.json());
 
 // ---------- Static frontend (BEFORE API so / serves index.html, not a 404 JSON) ----------

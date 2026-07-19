@@ -3,8 +3,5 @@ services:
     name: smart-ptw
     runtime: node
     plan: free
-    buildCommand: npm install --include=dev && npm run build
-    startCommand: npm run serve
-    envVars:
-      - key: NODE_ENV
-        value: production
+    buildCommand: npm install
+    startCommand: npx json-server server/db.json --port $PORT --host 0.0.0.0
