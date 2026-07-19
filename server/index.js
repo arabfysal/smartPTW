@@ -1,9 +1,10 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { existsSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '..');
 const PORT = process.env.PORT || 4000;
 
 // Seed db.json from the snapshot on first boot (Render's FS is ephemeral per deploy)
@@ -23,6 +24,18 @@ function nextId() { return (++idCounter).toString(36); }
 const app = express();
 app.use(express.json());
 
+// ---------- Static frontend (BEFORE API so / serves index.html, not a 404 JSON) ----------
+const distDir = join(ROOT, 'dist');
+const indexPath = join(distDir, 'index.html');
+
+console.log(`[boot] ROOT=${ROOT}`);
+console.log(`[boot] distDir=${distDir} exists=${existsSync(distDir)}`);
+console.log(`[boot] index.html exists=${existsSync(indexPath)}`);
+
+if (existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
+
 // ---------- REST API on /api ----------
 
 // GET /api/:resource
@@ -31,12 +44,10 @@ app.get('/api/:resource', (req, res) => {
   if (!Array.isArray(data)) return res.status(404).json({});
   const q = req.query;
   let result = data;
-  // Simple field filtering (json-server compatible)
   for (const [key, val] of Object.entries(q)) {
     if (key.startsWith('_')) continue;
     result = result.filter((item) => String(item[key]) === String(val));
   }
-  // _sort
   if (q._sort) {
     const field = String(q._sort);
     const order = String(q._order || 'asc').toLowerCase();
@@ -101,11 +112,13 @@ app.delete('/api/:resource/:id', (req, res) => {
   res.status(200).json({});
 });
 
-// ---------- Static frontend ----------
-const distDir = join(__dirname, '..', 'dist');
-app.use(express.static(distDir));
+// ---------- SPA fallback — any non-API, non-static route serves index.html ----------
 app.get('/{*path}', (_req, res) => {
-  res.sendFile(join(distDir, 'index.html'));
+  if (existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(503).send('Frontend not built — run npm run build first.');
+  }
 });
 
 app.listen(PORT, () => {
